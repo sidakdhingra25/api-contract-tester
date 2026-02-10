@@ -1,0 +1,20 @@
+# Source (consumers only need dist/)
+src/
+
+# Config and tooling
+tsconfig.json
+tsconfig.build.json
+*.tsbuildinfo
+.gitignore
+.npmignore
+
+# IDE / repo
+.git
+.github
+.vscode
+.idea
+
+# Dev / test
+*.test.ts
+*.spec.ts
+coverage
