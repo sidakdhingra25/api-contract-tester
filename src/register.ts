@@ -3,10 +3,10 @@
  * User creates contract-validator.config.ts, calls register(config), and imports that file once.
  */
 
+import { ContractValidatorConfig } from "./config/types";
 import { createInterceptor } from "./interceptor";
-import { createContractValidator } from "./validation/contract-validator";
-import type { ContractValidatorConfig } from "./config/types";
-import type { CreateContractValidatorOptions } from "./validation/contract-validator";
+import { createContractValidator, CreateContractValidatorOptions } from "./validation";
+
 
 /** Cleanup handle returned from register(); call to stop monitoring. */
 export interface RegisterCleanup {

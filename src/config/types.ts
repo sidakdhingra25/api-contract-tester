@@ -3,42 +3,117 @@
  * User defines API contracts (method, path, request/response schemas) via the builder.
  */
 
-/**
- * JSON Schema (subset). Use for request body and response body validation.
- * @see https://json-schema.org/
- */
-export type JsonSchema = Record<string, unknown>;
+/** JSON Schema type-safe subset (draft-07 style). */
+export type JsonSchema =
+  | JsonSchemaPrimitive
+  | JsonSchemaObject
+  | JsonSchemaArray
+  | JsonSchemaRef
+  | { [key: string]: unknown }; // escape hatch for $ref, allOf, anyOf, oneOf, etc.
+
+export type JsonSchemaPrimitiveType =
+  | "string"
+  | "number"
+  | "integer"
+  | "boolean"
+  | "null";
+
+export interface JsonSchemaPrimitive {
+  type?: JsonSchemaPrimitiveType;
+  enum?: unknown[];
+  const?: unknown;
+  format?: string;
+  // string
+  minLength?: number;
+  maxLength?: number;
+  pattern?: string;
+  // number/integer
+  minimum?: number;
+  maximum?: number;
+  exclusiveMinimum?: number | boolean;
+  exclusiveMaximum?: number | boolean;
+  multipleOf?: number;
+  // meta
+  title?: string;
+  description?: string;
+  default?: unknown;
+  readOnly?: boolean;
+  writeOnly?: boolean;
+  [key: string]: unknown;
+}
+
+export interface JsonSchemaObject {
+  type?: "object";
+  properties?: Record<string, JsonSchema>;
+  additionalProperties?: boolean | JsonSchema;
+  patternProperties?: Record<string, JsonSchema>;
+  required?: string[];
+  propertyNames?: JsonSchema;
+  minProperties?: number;
+  maxProperties?: number;
+  dependencies?: Record<string, string[] | JsonSchema>;
+  dependentRequired?: Record<string, string[]>;
+  dependentSchemas?: Record<string, JsonSchema>;
+  title?: string;
+  description?: string;
+  default?: unknown;
+  [key: string]: unknown;
+}
+
+export interface JsonSchemaArray {
+  type?: "array";
+  items?: JsonSchema | JsonSchema[];
+  additionalItems?: boolean | JsonSchema;
+  contains?: JsonSchema;
+  minItems?: number;
+  maxItems?: number;
+  uniqueItems?: boolean;
+  title?: string;
+  description?: string;
+  default?: unknown;
+  [key: string]: unknown;
+}
+
+export interface JsonSchemaRef {
+  $ref?: string;
+  $id?: string;
+  $defs?: Record<string, JsonSchema>;
+  definitions?: Record<string, JsonSchema>;
+  [key: string]: unknown;
+}
+
+/** Request schema aspects. Each field uses {@link JsonSchema} (objects, arrays, primitives, $ref). */
+export interface RequestSchemas {
+  body?: JsonSchema;
+  query?: JsonSchema;
+  headers?: JsonSchema;
+  cookies?: JsonSchema;
+}
+
+/** Response schema aspects. Each schema field uses {@link JsonSchema}. */
+export interface ResponseSchemas {
+  body?: JsonSchema;
+  statusCodes?: number[];
+  headers?: JsonSchema;
+  cookies?: JsonSchema;
+}
 
 /**
  * Single contract: one API endpoint with optional schemas for payload and response aspects.
- * Covers types.md: body, query, headers, cookies, status.
+ * Request/response schema fields use the JSON Schema types above ({@link JsonSchema},
+ * {@link JsonSchemaObject}, {@link JsonSchemaArray}, {@link JsonSchemaRef}, etc.).
+ * Covers body, query, headers, cookies, status.
  */
 export interface ContractDefinition {
-  /** HTTP method (GET, POST, PUT, PATCH, DELETE, etc.). */
   method: string;
-  /**
-   * Path pattern. Use :param for path params, e.g. "/api/users/:id".
-   * Used to match captured request URL path.
-   */
   path: string;
-  /** Optional JSON Schema for request body. */
-  requestSchema?: JsonSchema;
-  /** Optional JSON Schema for request query params (urlParts.queryParams). */
-  requestQuerySchema?: JsonSchema;
-  /** Optional JSON Schema for request headers. */
-  requestHeadersSchema?: JsonSchema;
-  /** Optional JSON Schema for request cookies. */
-  requestCookiesSchema?: JsonSchema;
-  /** Optional JSON Schema for response body. */
-  responseSchema?: JsonSchema;
-  /** Allowed response status codes; if set, response.status must be in this array. */
-  allowedResponseStatusCodes?: number[];
-  /** Optional JSON Schema for response headers. */
-  responseHeadersSchema?: JsonSchema;
-  /** Optional JSON Schema for response cookies. */
-  responseCookiesSchema?: JsonSchema;
-  /** Optional human-readable label for this contract. */
   label?: string;
+
+  /** Request aspects (all optional). Schemas follow {@link JsonSchema}. */
+  request?: RequestSchemas;
+
+  /** Response aspects (all optional). Schemas follow {@link JsonSchema}. */
+  response?: ResponseSchemas;
 }
 
 /**

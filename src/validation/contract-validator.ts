@@ -65,38 +65,38 @@ export function createContractValidator(
     const { response } = payload;
 
     // Request (payload) aspects
-    if (contract.requestSchema) {
-      const r = validateWithSchema(request.body, contract.requestSchema);
+    if (contract.request?.body) {
+      const r = validateWithSchema(request.body, contract.request.body);
       if (!r.valid) emitViolation(contract, request, response, "request-body", r.errors, onViolation);
     }
-    if (contract.requestQuerySchema) {
-      const r = validateWithSchema(request.urlParts?.queryParams ?? {}, contract.requestQuerySchema);
+    if (contract.request?.query) {
+      const r = validateWithSchema(request.urlParts?.queryParams ?? {}, contract.request.query);
       if (!r.valid) emitViolation(contract, request, response, "request-query", r.errors, onViolation);
     }
-    if (contract.requestHeadersSchema) {
-      const r = validateWithSchema(request.headers ?? {}, contract.requestHeadersSchema);
+    if (contract.request?.headers) {
+      const r = validateWithSchema(request.headers ?? {}, contract.request.headers);
       if (!r.valid) emitViolation(contract, request, response, "request-headers", r.errors, onViolation);
     }
-    if (contract.requestCookiesSchema) {
-      const r = validateWithSchema(request.cookies ?? {}, contract.requestCookiesSchema);
+    if (contract.request?.cookies) {
+      const r = validateWithSchema(request.cookies ?? {}, contract.request.cookies);
       if (!r.valid) emitViolation(contract, request, response, "request-cookies", r.errors, onViolation);
     }
 
     // Response aspects
-    if (contract.responseSchema) {
-      const r = validateWithSchema(response.body, contract.responseSchema);
+    if (contract.response?.body) {
+      const r = validateWithSchema(response.body, contract.response.body);
       if (!r.valid) emitViolation(contract, request, response, "response-body", r.errors, onViolation);
     }
-    if (contract.allowedResponseStatusCodes != null && contract.allowedResponseStatusCodes.length > 0) {
-      const r = validateStatusCode(response.status, contract.allowedResponseStatusCodes);
+    if (contract.response?.statusCodes != null && contract.response.statusCodes.length > 0) {
+      const r = validateStatusCode(response.status, contract.response.statusCodes);
       if (!r.valid) emitViolation(contract, request, response, "response-status", r.errors, onViolation);
     }
-    if (contract.responseHeadersSchema) {
-      const r = validateWithSchema(response.headers ?? {}, contract.responseHeadersSchema);
+    if (contract.response?.headers) {
+      const r = validateWithSchema(response.headers ?? {}, contract.response.headers);
       if (!r.valid) emitViolation(contract, request, response, "response-headers", r.errors, onViolation);
     }
-    if (contract.responseCookiesSchema) {
-      const r = validateWithSchema(response.cookies ?? {}, contract.responseCookiesSchema);
+    if (contract.response?.cookies) {
+      const r = validateWithSchema(response.cookies ?? {}, contract.response.cookies);
       if (!r.valid) emitViolation(contract, request, response, "response-cookies", r.errors, onViolation);
     }
   }

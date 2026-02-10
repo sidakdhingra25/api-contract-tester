@@ -10,3 +10,7 @@ dist/
 .idea/
 *.swp
 *.swo
+
+
+# config
+contract-validator.config.example.ts

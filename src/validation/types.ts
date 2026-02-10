@@ -2,8 +2,11 @@
  * Validation layer types.
  */
 
-import type { CapturedRequest, CapturedResponse } from "../types";
-import type { ContractDefinition } from "../config/types";
+import { ContractDefinition } from "../config/types";
+import { CapturedRequest, CapturedResponse } from "../interceptor";
+
+
+
 
 export interface ContractValidationErrorItem {
   path?: string;

@@ -13,14 +13,8 @@ function pushContract(
     contracts.push({
       method: current.method,
       path: current.path,
-      requestSchema: current.requestSchema,
-      requestQuerySchema: current.requestQuerySchema,
-      requestHeadersSchema: current.requestHeadersSchema,
-      requestCookiesSchema: current.requestCookiesSchema,
-      responseSchema: current.responseSchema,
-      allowedResponseStatusCodes: current.allowedResponseStatusCodes,
-      responseHeadersSchema: current.responseHeadersSchema,
-      responseCookiesSchema: current.responseCookiesSchema,
+      request: current.request,
+      response: current.response,
       label: current.label,
     });
   }
@@ -84,7 +78,12 @@ export function defineContractConfig(
 
   function start(method: string, path: string) {
     pushContract(contracts, state.current);
-    state.current = { method: method.toUpperCase(), path };
+    state.current = {
+      method: method.toUpperCase(),
+      path,
+      request: {},
+      response: {},
+    };
   }
 
   const builder: ContractChain = {
@@ -93,39 +92,48 @@ export function defineContractConfig(
       return builder;
     },
     body(schema: JsonSchema) {
-      state.current.requestSchema = schema;
+      if (!state.current.request) state.current.request = {};
+      state.current.request.body = schema;
       return builder;
     },
     request(schema: JsonSchema) {
-      state.current.requestSchema = schema;
+      if (!state.current.request) state.current.request = {};
+      state.current.request.body = schema;
       return builder;
     },
     query(schema: JsonSchema) {
-      state.current.requestQuerySchema = schema;
+      if (!state.current.request) state.current.request = {};
+      state.current.request.query = schema;
       return builder;
     },
     requestHeaders(schema: JsonSchema) {
-      state.current.requestHeadersSchema = schema;
+      if (!state.current.request) state.current.request = {};
+      state.current.request.headers = schema;
       return builder;
     },
     requestCookies(schema: JsonSchema) {
-      state.current.requestCookiesSchema = schema;
+      if (!state.current.request) state.current.request = {};
+      state.current.request.cookies = schema;
       return builder;
     },
     response(schema: JsonSchema) {
-      state.current.responseSchema = schema;
+      if (!state.current.response) state.current.response = {};
+      state.current.response.body = schema;
       return builder;
     },
     responseStatusCodes(codes: number[]) {
-      state.current.allowedResponseStatusCodes = codes;
+      if (!state.current.response) state.current.response = {};
+      state.current.response.statusCodes = codes;
       return builder;
     },
     responseHeaders(schema: JsonSchema) {
-      state.current.responseHeadersSchema = schema;
+      if (!state.current.response) state.current.response = {};
+      state.current.response.headers = schema;
       return builder;
     },
     responseCookies(schema: JsonSchema) {
-      state.current.responseCookiesSchema = schema;
+      if (!state.current.response) state.current.response = {};
+      state.current.response.cookies = schema;
       return builder;
     },
     label(name: string) {
