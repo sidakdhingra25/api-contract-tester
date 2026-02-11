@@ -1,6 +1,6 @@
 /**
- * Loads the contract config from the project by the exact filename.
- * Only looks for CONTRACT_VALIDATOR_CONFIG_FILENAME with extensions .js, .mjs, .cjs.
+ * Loads the contract config from the project.
+ * The only supported config file is contract-validator.config.ts (compiled to .js, .mjs, or .cjs).
  * Node only (uses fs/path); in the browser the app should import the config and pass it.
  */
 
@@ -10,7 +10,9 @@ import { CONTRACT_VALIDATOR_CONFIG_FILENAME } from "./constants";
 const EXTENSIONS = [".js", ".mjs", ".cjs"] as const;
 
 /**
- * Resolves the config file path. Returns the first path that exists.
+ * Resolves the config file path. Looks for contract-validator.config with extension .js, .mjs, or .cjs.
+ * The user must create exactly contract-validator.config.ts; no other config filenames are supported.
+ * Returns the first path that exists, or null if not found.
  */
 function resolveConfigPath(cwd: string): string | null {
   try {
@@ -28,11 +30,11 @@ function resolveConfigPath(cwd: string): string | null {
 
 /**
  * Loads the contract validator config from the project.
- * Looks for a file named exactly CONTRACT_VALIDATOR_CONFIG_FILENAME (.js, .mjs, or .cjs) in cwd.
+ * The only supported config file is contract-validator.config.ts (at runtime, its compiled .js, .mjs, or .cjs in cwd).
  * Only runs in Node (uses process.cwd, fs, path). In the browser, import the config and pass it.
  *
  * @param options.cwd - Project root (default: process.cwd()). The package checks only this directory.
- * @returns The config default export, or null if the file is not found or not in Node.
+ * @returns The config default export, or null if the file is not found or not in Node. If null, create contract-validator.config.ts in the project root.
  */
 export async function loadContractConfig(options?: {
   cwd?: string;

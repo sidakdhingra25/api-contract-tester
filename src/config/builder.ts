@@ -27,8 +27,6 @@ export interface ContractChain {
   /** Frontend port to listen for (e.g. 3000 for Next, 4200 for Angular). */
   port(portNumber: number): ContractChain;
   /** Request body schema. */
-  body(schema: JsonSchema): ContractChain;
-  /** Alias for body(). */
   request(schema: JsonSchema): ContractChain;
   /** Request query params schema (validates urlParts.queryParams). */
   query(schema: JsonSchema): ContractChain;
@@ -63,8 +61,8 @@ export interface ContractChain {
  * export default defineContractConfig((builder) => {
  *   builder.get('/api/users').response(UserSchema);
  *   builder.get('/api/users/:id').response(UserSchema);
- *   builder.post('/api/users').body(CreateUserSchema).response(UserSchema);
- *   builder.put('/api/users/:id').body(UpdateUserSchema).response(UserSchema);
+ *   builder.post('/api/users').request(CreateUserSchema).response(UserSchema);
+ *   builder.put('/api/users/:id').request(UpdateUserSchema).response(UserSchema);
  * });
  */
 export function defineContractConfig(
@@ -89,11 +87,6 @@ export function defineContractConfig(
   const builder: ContractChain = {
     port(portNumber: number) {
       state.port = portNumber;
-      return builder;
-    },
-    body(schema: JsonSchema) {
-      if (!state.current.request) state.current.request = {};
-      state.current.request.body = schema;
       return builder;
     },
     request(schema: JsonSchema) {

@@ -3,7 +3,6 @@
  * Normalizes Request/RequestInit and Response into CapturedRequest/CapturedResponse
  * with non-destructive body handling (clone response before reading).
  * Captures all payload/response aspects from types.md.
- * @see Step 2 plan; DEVELOPMENT_PLAN Stage 1.1
  */
 
 import type {
@@ -18,19 +17,30 @@ import type {
 // ---------------------------------------------------------------------------
 
 /**
- * Converts Headers or Record to a plain Record<string, string>.
- * If Headers, uses entries(); if already a record, returns a shallow copy.
+ * Converts HeadersInit to a plain Record<string, string>.
+ * Handles Headers, array of [key, value] tuples, and plain Record. Idempotent for Record (returns shallow copy).
  */
 export function headersToRecord(
-  headers: Headers | Record<string, string> | null | undefined
+  headers: HeadersInit | null | undefined
 ): Record<string, string> {
-  if (headers == null) {
-    return {};
+  if (!headers) return {};
+
+  // Array of [key, value] tuples
+  if (Array.isArray(headers)) {
+    return Object.fromEntries(headers);
   }
-  if (headers instanceof Headers) {
-    return Object.fromEntries(headers.entries());
+
+  // Headers object only (instanceof — avoids treating Map, custom objects, or polyfills as Headers)
+  if (typeof Headers !== "undefined" && headers instanceof Headers) {
+    try {
+      return Object.fromEntries(headers.entries());
+    } catch {
+      return {};
+    }
   }
-  return { ...headers };
+
+  // Plain object (Record<string, string>)
+  return { ...(headers as Record<string, string>) };
 }
 
 /**
@@ -131,7 +141,7 @@ export function parseSetCookieHeaders(headers: Record<string, string>): Record<s
   for (const key of setCookieKeys) {
     const value = headers[key];
     if (typeof value !== "string") continue;
-    const parts = value.split(/,(?=\s*\w+=)/);
+    const parts = value.split(/,(?=\s*[^;=]+=)/);
     for (const part of parts) {
       const eq = part.trim().indexOf("=");
       if (eq === -1) continue;
@@ -204,7 +214,7 @@ export function inferRequestBodyKind(
   parsedBody: unknown
 ): BodyKind {
   if (bodySource == null) return "empty";
-  if (typeof (bodySource as ReadableStream).getReader === "function") return "stream";
+  if (bodySource instanceof ReadableStream) return "stream";
   if (bodySource instanceof FormData) return "multipart";
   if (bodySource instanceof URLSearchParams) return "form";
   if (bodySource instanceof Blob || bodySource instanceof ArrayBuffer || ArrayBuffer.isView(bodySource))
@@ -247,7 +257,8 @@ function getContentType(headers: Record<string, string>): string | undefined {
 
 function isJsonContentType(contentType: string | undefined): boolean {
   if (!contentType) return false;
-  return contentType.trim().toLowerCase().startsWith("application/json");
+  const media = contentType.split(";")[0].trim().toLowerCase();
+  return media === "application/json" || media.endsWith("+json");
 }
 
 /**
@@ -316,7 +327,7 @@ export function parseBody(
     return { "[ArrayBufferView]": true, byteLength: body.byteLength };
   }
 
-  if (typeof (body as ReadableStream).getReader === "function") {
+  if (body instanceof ReadableStream) {
     return "[ReadableStream]";
   }
 
@@ -341,9 +352,7 @@ export function serializeRequest(
   const url = isRequest ? input.url : String(input);
   const method = (isRequest ? input.method : init?.method) ?? "GET";
   const headersSource = isRequest ? input.headers : init?.headers;
-  const headers = headersToRecord(
-    headersSource as Headers | Record<string, string> | undefined
-  );
+  const headers = headersToRecord(headersSource);
   const contentType = getContentType(headers);
   const bodySource = isRequest ? input.body : init?.body;
   const body = parseBody(
